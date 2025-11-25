@@ -1,58 +1,197 @@
-# Online Healthcare Management System
+Online Healthcare Management System
 
-Java Swing + MySQL desktop application demonstrating a fully structured MVC/DAO/Service architecture for managing a healthcare facility with Admin, Doctor and Patient roles.
+A Java Swing + MySQL desktop application designed to streamline key operations in a healthcare facility.
+The system supports three user roles — Admin, Doctor, and Patient — each with dedicated dashboards, workflows, and permissions.
 
-## Features
-- Role based login and dashboards (Admin, Doctor, Patient)
-- User management with role specific profiles (users/doctors/patients)
-- Appointment scheduling, rescheduling and status management
-- Doctor availability planning
-- Medical records management and patient history
-- Patient feedback for doctors with average ratings
-- System settings key/value configuration store
-- Lightweight analytics for admins (counts, trends)
+The project follows a clean MVC + DAO + Service architecture for maintainability and scalability.
 
-## Tech Stack
-- Java 8+ (Swing UI)
-- MySQL 8.x with JDBC (mysql-connector-j)
-- MVC + DAO + Service layering under package base `com.healthcare`
+🔧 Tech Stack
 
-## Project Structure (key folders)
-```
-src/com/healthcare
-  model/         // Data objects
-  dao/           // DAO interfaces + JDBC implementations
-  service/       // Business logic per role
-  ui/            // Swing screens and panels
-  util/          // Helpers (password hashing, dates, UI dialogs)
-lib/             // Place mysql-connector-j JAR here if not using Maven
-sql/             // Database creation script
-```
+Java 8+
 
-## Database Setup
-1. Install MySQL 8.x.
-2. Run `sql/healthcare_db.sql` to create schema, tables and seed data (includes `admin@health.com / admin123`).
+Swing (desktop UI)
 
-## Running the Application
-1. Open the project in IntelliJ IDEA, Eclipse or any IDE with Java 8+ support.
-2. Update database credentials inside `com.healthcare.dao.ConnectionFactory` if needed.
-3. Add MySQL Connector/J to the classpath:
-   - **IDE classpath**: Place the driver JAR under `lib/` and add it to the project module.
-4. Build/compile the project.
-5. Run `com.healthcare.ui.LoginFrame` (contains the `main` method).
-6. Login using the seeded admin (`admin@health.com / admin123`) or sample doctor/patient accounts from the SQL script.
+MySQL 8.x
 
-## Notes for Evaluation
-- All JDBC logic resides in DAO implementations; UI classes only call services.
-- Passwords are stored as SHA‑256 hashes (`PasswordUtil`).
-- The UI includes basic validation and friendly error messages through `UiUtil`.
-- Services consolidate business rules such as slot conflict checks and profile validation.
-- `ReportService` showcases how analytics can be added without external dependencies.
+JDBC (mysql-connector-j)
 
-## Evaluation Summary
-- **OOP implementation (polymorphism, inheritance, exception handling, interfaces)**: *10 / 10*
-- **Collections & generics usage**: *6 / 6*
-- **Multithreading & synchronization**: *4 / 4*
-- **Database operation classes**: *7 / 7*
-- **Database connectivity (JDBC)**: *3 / 3*
-- **JDBC implementation for connectivity**: *3 / 3*
+MVC + DAO + Service layering
+
+SHA-256 password hashing
+
+📌 Core Features
+1. Role-Based Authentication
+
+Login screens for Admin, Doctor, and Patient
+
+Access control enforced at UI and service layers
+
+Passwords stored as secure SHA-256 hashes
+
+2. Admin Module
+
+Manage users: create/update/delete doctors & patients
+
+Configure system settings (key/value store)
+
+View basic analytics: doctor count, appointments, patient stats
+
+Access appointment overview and global system metrics
+
+3. Doctor Module
+
+Manage availability schedule
+
+View upcoming appointments
+
+Update patient records & medical history
+
+Check patient feedback and average ratings
+
+4. Patient Module
+
+Book, cancel, or reschedule appointments
+
+View complete medical history
+
+Provide feedback & rating for doctors
+
+5. Additional Utilities
+
+Appointment conflict detection
+
+Input validation and UI alerts
+
+Reusable helpers for hashing, date formatting, and dialogs
+
+Modular architecture for easy expansion
+
+📁 Project Structure
+healthcare-management-system/
+│
+├── lib/                     # JDBC driver (mysql-connector-j)
+│
+├── sql/
+│   └── healthcare_db.sql    # Database schema + seed data
+│
+└── src/com/healthcare/
+    ├── model/               # POJOs (User, Doctor, Appointment, Records, etc.)
+    │
+    ├── dao/                 # DAO interfaces
+    │   └── impl/            # JDBC implementations
+    │
+    ├── service/             # Business logic (AdminService, DoctorService, etc.)
+    │
+    ├── ui/                  # Swing GUI screens
+    │   ├── admin/           # Admin dashboard panels
+    │   ├── doctor/          # Doctor dashboard panels
+    │   └── patient/         # Patient dashboard panels
+    │
+    └── util/                # Helpers (PasswordUtil, UiUtil, DateUtil, etc.)
+
+🗄 Database Setup
+
+Install MySQL 8.x
+
+Open MySQL Workbench
+
+Run:
+
+SOURCE sql/healthcare_db.sql;
+
+
+This will:
+
+Create the database
+
+Build all tables
+
+Insert sample users
+
+Default Credentials
+Role	Email	Password
+Admin	admin@health.com
+	admin123
+▶️ Running the Application
+
+Open the project in IntelliJ IDEA or Eclipse
+
+Add the MySQL connector:
+
+Place mysql-connector-j.jar inside lib/
+
+Add it to your module dependencies
+
+Configure database credentials in:
+
+src/com/healthcare/dao/ConnectionFactory.java
+
+
+Build the project
+
+Run:
+
+com.healthcare.ui.LoginFrame
+
+
+Login using seeded accounts
+
+🧱 Architecture Overview
+Model Layer
+
+Defines plain data objects used across the application.
+
+DAO Layer
+
+Handles all database operations using JDBC.
+UI never touches SQL directly.
+
+Service Layer
+
+Applies business rules:
+
+Slot clash detection
+
+Profile data validation
+
+Role-specific operations
+
+UI Layer
+
+Java Swing forms and panels that call service methods.
+Clean separation ensures easy maintenance.
+
+📊 Analytics
+
+A lightweight analytics module (ReportService) provides:
+
+Total users
+
+Total doctors
+
+Appointment stats
+
+Slot utilization trends
+
+No external libraries required.
+
+🚀 Why This Project Stands Out
+
+Entirely structured around real-world enterprise patterns
+
+Clean separations: UI ↔ Service ↔ DAO
+
+Fully navigable multi-role dashboards
+
+Beginner-friendly to understand, yet industry-graded in architecture
+
+Suitable for academic submissions, internships, or portfolio projects
+
+📜 License
+
+This project is open for educational and personal use.
+Attribution optional but appreciated.
+
+🤝 Contributions
+
+Issues, improvements, and feature requests are welcome.
