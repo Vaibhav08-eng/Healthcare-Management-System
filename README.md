@@ -47,7 +47,7 @@ A desktop-based healthcare management system built using Java Swing and MySQL. T
 ---
 
 ## 📁 Project Structure
-
+```sql
 healthcare-management-system/
 │
 ├── lib/ # JDBC driver (mysql-connector-j)
@@ -71,7 +71,7 @@ healthcare-management-system/
 └── util/ # PasswordUtil, DateUtil, UiUtil, etc.
 
 ---
-
+```
 ## 🗄 Database Setup
 
 1. Install **MySQL 8.x**
