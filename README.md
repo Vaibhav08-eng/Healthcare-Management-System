@@ -89,48 +89,77 @@ Default Login
 | Admin | [admin@health.com](mailto:admin@health.com) | admin123 |
 
 ▶️ Running the Application
+
 1.Open the project in IntelliJ IDEA / Eclipse
+
 2.Add the MySQL connector:
+
 ->Place mysql-connector-j.jar inside lib/
+
 ->Add it to your project/module dependencies
+
 3. Update DB credentials in:
 src/com/healthcare/dao/ConnectionFactory.java
+
 4.Build and run:
 com.healthcare.ui.LoginFrame
+
 5.Log in using the seeded accounts
 
 🧱 Architecture Overview
-Model Layer
+
+*Model Layer
+
 Contains basic data objects used by DAOs and services.
 
-DAO Layer
+*DAO Layer
+
 Responsible for all database interactions using JDBC.
+
 No SQL logic is mixed into UI components.
 
-Service Layer
+*Service Layer
+
 Handles business rules:
+
 ->Appointment slot conflict checks
+
 ->User validation
+
 ->Role-specific operations
 
-UI Layer (Swing)
+*UI Layer (Swing)
+
 Screens invoke services — never DAOs directly.
+
 Separation ensures cleaner, maintainable code.
 
 📊 Analytics
+
 The system includes a lightweight analytics module (ReportService), providing:
+
 ->Total users
+
 ->Doctor count
+
 ->Appointment summaries
+
 ->Basic trends
+
 No external analytics libraries required.
 
 🚀 Why This Project Matters
+
 ->Uses real industry patterns (MVC, DAO, service abstraction)
+
 ->Clean separation of concerns
+
 ->Expandable dashboards for three different user types
+
 ->Strong foundation for academic, portfolio, or internship submissions
 
 📜 License
+
 MIT License — free for learning, modification, and personal use.
+
 -->The project is open for educational purposes and personal use . Attribution optional appreciated. 
