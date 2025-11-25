@@ -78,7 +78,6 @@ healthcare-management-system/
 2. Open MySQL Workbench
 3. Run:
 
-```sql
 SOURCE sql/healthcare_db.sql;
 This creates:
 ->The database & tables
