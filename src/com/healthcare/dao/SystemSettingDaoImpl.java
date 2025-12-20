@@ -1,6 +1,7 @@
 package com.healthcare.dao;
 
 import com.healthcare.model.SystemSetting;
+import com.healthcare.util.DataSourceProvider;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,7 +21,7 @@ public class SystemSettingDaoImpl implements SystemSettingDao {
     @Override
     public List<SystemSetting> findAll() {
         List<SystemSetting> settings = new ArrayList<>();
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(BASE_SELECT);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -35,7 +36,7 @@ public class SystemSettingDaoImpl implements SystemSettingDao {
     @Override
     public Optional<SystemSetting> findByKey(String key) {
         String sql = BASE_SELECT + " WHERE setting_key=?";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, key);
             ResultSet rs = ps.executeQuery();
@@ -52,7 +53,7 @@ public class SystemSettingDaoImpl implements SystemSettingDao {
     public void saveOrUpdate(SystemSetting setting) {
         String sql = "INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) " +
                 "ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value)";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, setting.getKey());
             ps.setString(2, setting.getValue());

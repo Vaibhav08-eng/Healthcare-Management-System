@@ -1,6 +1,7 @@
 package com.healthcare.dao;
 
 import com.healthcare.model.MedicalRecord;
+import com.healthcare.util.DataSourceProvider;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -32,7 +33,7 @@ public class MedicalRecordDaoImpl implements MedicalRecordDao {
     @Override
     public int save(MedicalRecord record) {
         String sql = "INSERT INTO medical_records (patient_id, doctor_id, visit_date, diagnosis, prescription, notes) VALUES (?,?,?,?,?,?)";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, record.getPatientId());
             ps.setInt(2, record.getDoctorId());
@@ -54,7 +55,7 @@ public class MedicalRecordDaoImpl implements MedicalRecordDao {
     @Override
     public void update(MedicalRecord record) {
         String sql = "UPDATE medical_records SET visit_date=?, diagnosis=?, prescription=?, notes=? WHERE record_id=?";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setObject(1, record.getVisitDate());
             ps.setString(2, record.getDiagnosis());
@@ -69,7 +70,7 @@ public class MedicalRecordDaoImpl implements MedicalRecordDao {
 
     private List<MedicalRecord> execute(String sql, int id) {
         List<MedicalRecord> records = new ArrayList<>();
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();

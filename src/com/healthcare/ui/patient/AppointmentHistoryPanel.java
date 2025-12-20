@@ -80,8 +80,13 @@ public class AppointmentHistoryPanel extends JPanel {
             return;
         }
         int appointmentId = (Integer) model.getValueAt(row, 0);
-        patientService.cancelAppointment(appointmentId);
-        refresh();
+        try {
+            patientService.cancelAppointment(appointmentId, patientUser.getUserId());
+            UiUtil.showInfo("Appointment cancelled successfully.");
+            refresh();
+        } catch (Exception ex) {
+            UiUtil.showError("Failed to cancel appointment.", ex);
+        }
     }
 }
 

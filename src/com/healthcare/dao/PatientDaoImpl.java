@@ -1,6 +1,7 @@
 package com.healthcare.dao;
 
 import com.healthcare.model.Patient;
+import com.healthcare.util.DataSourceProvider;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,7 +22,7 @@ public class PatientDaoImpl implements PatientDao {
     @Override
     public Optional<Patient> findById(int patientId) {
         String sql = BASE_SELECT + " WHERE patient_id=?";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, patientId);
             ResultSet rs = ps.executeQuery();
@@ -37,7 +38,7 @@ public class PatientDaoImpl implements PatientDao {
     @Override
     public List<Patient> findAll() {
         List<Patient> patients = new ArrayList<>();
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(BASE_SELECT);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -52,7 +53,7 @@ public class PatientDaoImpl implements PatientDao {
     @Override
     public void save(Patient patient) {
         String sql = "INSERT INTO patients (patient_id, dob, gender, phone, address, blood_group) VALUES (?,?,?,?,?,?)";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, patient.getPatientId());
             ps.setObject(2, patient.getDob());
@@ -69,8 +70,8 @@ public class PatientDaoImpl implements PatientDao {
     @Override
     public void update(Patient patient) {
         String sql = "UPDATE patients SET dob=?, gender=?, phone=?, address=?, blood_group=? WHERE patient_id=?";
-        try (Connection conn = ConnectionFactory.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DataSourceProvider.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setObject(1, patient.getDob());
             ps.setString(2, patient.getGender());
             ps.setString(3, patient.getPhone());

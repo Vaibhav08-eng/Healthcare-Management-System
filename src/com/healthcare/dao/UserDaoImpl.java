@@ -1,6 +1,7 @@
 package com.healthcare.dao;
 
 import com.healthcare.model.User;
+import com.healthcare.util.DataSourceProvider;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,7 +23,7 @@ public class UserDaoImpl implements UserDao {
     @Override
     public Optional<User> findByEmail(String email) {
         String sql = BASE_SELECT + " WHERE email = ?";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
@@ -38,7 +39,7 @@ public class UserDaoImpl implements UserDao {
     @Override
     public Optional<User> findById(int id) {
         String sql = BASE_SELECT + " WHERE user_id = ?";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
@@ -55,7 +56,7 @@ public class UserDaoImpl implements UserDao {
     public List<User> findAll() {
         String sql = BASE_SELECT + " ORDER BY created_at DESC";
         List<User> users = new ArrayList<>();
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -72,7 +73,7 @@ public class UserDaoImpl implements UserDao {
         String sql = BASE_SELECT + " WHERE name LIKE ? OR email LIKE ? ORDER BY name";
         List<User> users = new ArrayList<>();
         String pattern = "%" + keyword + "%";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, pattern);
             ps.setString(2, pattern);
@@ -89,7 +90,7 @@ public class UserDaoImpl implements UserDao {
     @Override
     public int save(User user) {
         String sql = "INSERT INTO users (name, email, password_hash, role, status) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.getName());
             ps.setString(2, user.getEmail());
@@ -110,7 +111,7 @@ public class UserDaoImpl implements UserDao {
     @Override
     public void update(User user) {
         String sql = "UPDATE users SET name=?, email=?, password_hash=?, role=?, status=? WHERE user_id=?";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user.getName());
             ps.setString(2, user.getEmail());
@@ -127,7 +128,7 @@ public class UserDaoImpl implements UserDao {
     @Override
     public void delete(int userId) {
         String sql = "DELETE FROM users WHERE user_id=?";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ps.executeUpdate();

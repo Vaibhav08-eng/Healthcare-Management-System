@@ -1,6 +1,6 @@
 package com.healthcare.model;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * Represents a time slot that a doctor can offer.
@@ -8,8 +8,8 @@ import java.time.LocalDate;
 public class DoctorAvailability {
     private int availabilityId;
     private int doctorId;
-    private LocalDate availableDate;
-    private String timeSlot;
+    private LocalDateTime startTimeUtc;
+    private LocalDateTime endTimeUtc;
     private boolean available;
 
     public int getAvailabilityId() {
@@ -28,20 +28,20 @@ public class DoctorAvailability {
         this.doctorId = doctorId;
     }
 
-    public LocalDate getAvailableDate() {
-        return availableDate;
+    public LocalDateTime getStartTimeUtc() {
+        return startTimeUtc;
     }
 
-    public void setAvailableDate(LocalDate availableDate) {
-        this.availableDate = availableDate;
+    public void setStartTimeUtc(LocalDateTime startTimeUtc) {
+        this.startTimeUtc = startTimeUtc;
     }
 
-    public String getTimeSlot() {
-        return timeSlot;
+    public LocalDateTime getEndTimeUtc() {
+        return endTimeUtc;
     }
 
-    public void setTimeSlot(String timeSlot) {
-        this.timeSlot = timeSlot;
+    public void setEndTimeUtc(LocalDateTime endTimeUtc) {
+        this.endTimeUtc = endTimeUtc;
     }
 
     public boolean isAvailable() {

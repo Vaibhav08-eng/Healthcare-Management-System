@@ -1,6 +1,7 @@
 package com.healthcare.dao;
 
 import com.healthcare.model.Feedback;
+import com.healthcare.util.DataSourceProvider;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,7 +22,7 @@ public class FeedbackDaoImpl implements FeedbackDao {
     public List<Feedback> findByDoctor(int doctorId) {
         String sql = BASE_SELECT + " WHERE doctor_id=? ORDER BY created_at DESC";
         List<Feedback> feedbackList = new ArrayList<>();
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, doctorId);
             ResultSet rs = ps.executeQuery();
@@ -37,7 +38,7 @@ public class FeedbackDaoImpl implements FeedbackDao {
     @Override
     public void save(Feedback feedback) {
         String sql = "INSERT INTO feedback (patient_id, doctor_id, rating, comments) VALUES (?,?,?,?)";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = DataSourceProvider.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, feedback.getPatientId());
             ps.setInt(2, feedback.getDoctorId());

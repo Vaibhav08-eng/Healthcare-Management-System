@@ -1,6 +1,5 @@
 package com.healthcare.model;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -10,8 +9,8 @@ public class Appointment {
     private int appointmentId;
     private int patientId;
     private int doctorId;
-    private LocalDate appointmentDate;
-    private String timeSlot;
+    private LocalDateTime startTimeUtc;
+    private LocalDateTime endTimeUtc;
     private String status;
     private String reason;
     private String notes;
@@ -41,20 +40,20 @@ public class Appointment {
         this.doctorId = doctorId;
     }
 
-    public LocalDate getAppointmentDate() {
-        return appointmentDate;
+    public LocalDateTime getStartTimeUtc() {
+        return startTimeUtc;
     }
 
-    public void setAppointmentDate(LocalDate appointmentDate) {
-        this.appointmentDate = appointmentDate;
+    public void setStartTimeUtc(LocalDateTime startTimeUtc) {
+        this.startTimeUtc = startTimeUtc;
     }
 
-    public String getTimeSlot() {
-        return timeSlot;
+    public LocalDateTime getEndTimeUtc() {
+        return endTimeUtc;
     }
 
-    public void setTimeSlot(String timeSlot) {
-        this.timeSlot = timeSlot;
+    public void setEndTimeUtc(LocalDateTime endTimeUtc) {
+        this.endTimeUtc = endTimeUtc;
     }
 
     public String getStatus() {

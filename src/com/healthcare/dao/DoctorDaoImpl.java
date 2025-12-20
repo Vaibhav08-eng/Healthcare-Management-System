@@ -1,6 +1,8 @@
 package com.healthcare.dao;
 
 import com.healthcare.model.Doctor;
+import com.healthcare.dao.DataAccessException;
+import com.healthcare.util.DataSourceProvider;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,19 +18,46 @@ import java.util.Optional;
 public class DoctorDaoImpl implements DoctorDao {
 
     private static final String BASE_SELECT = "SELECT doctor_id, specialization, experience_years, phone, consultation_fee FROM doctors";
+    private Connection connection;
+
+    @Override
+    public void setConnection(Connection connection) {
+        this.connection = connection;
+    }
+
+    private Connection getConnection() throws SQLException {
+        return connection != null ? connection : DataSourceProvider.getConnection();
+    }
+
+    private boolean isConnectionProvided() {
+        return connection != null;
+    }
 
     @Override
     public Optional<Doctor> findById(int doctorId) {
         String sql = BASE_SELECT + " WHERE doctor_id=?";
-        try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, doctorId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return Optional.of(mapRow(rs));
+        Connection conn = null;
+        boolean shouldClose = !isConnectionProvided();
+        try {
+            conn = getConnection();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, doctorId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return Optional.of(mapRow(rs));
+                    }
+                }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to load doctor", e);
+            throw new DataAccessException("Failed to load doctor", e);
+        } finally {
+            if (shouldClose && conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+            }
         }
         return Optional.empty();
     }
@@ -42,15 +71,28 @@ public class DoctorDaoImpl implements DoctorDao {
     public List<Doctor> findBySpecialization(String specialization) {
         String sql = BASE_SELECT + " WHERE specialization LIKE ? ORDER BY specialization";
         List<Doctor> doctors = new ArrayList<>();
-        try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, "%" + specialization + "%");
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                doctors.add(mapRow(rs));
+        Connection conn = null;
+        boolean shouldClose = !isConnectionProvided();
+        try {
+            conn = getConnection();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, "%" + specialization + "%");
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        doctors.add(mapRow(rs));
+                    }
+                }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to find doctors by specialization", e);
+            throw new DataAccessException("Failed to find doctors by specialization", e);
+        } finally {
+            if (shouldClose && conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+            }
         }
         return doctors;
     }
@@ -58,45 +100,81 @@ public class DoctorDaoImpl implements DoctorDao {
     @Override
     public void save(Doctor doctor) {
         String sql = "INSERT INTO doctors (doctor_id, specialization, experience_years, phone, consultation_fee) VALUES (?,?,?,?,?)";
-        try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, doctor.getDoctorId());
-            ps.setString(2, doctor.getSpecialization());
-            ps.setInt(3, doctor.getExperienceYears());
-            ps.setString(4, doctor.getPhone());
-            ps.setDouble(5, doctor.getConsultationFee());
-            ps.executeUpdate();
+        Connection conn = null;
+        boolean shouldClose = !isConnectionProvided();
+        try {
+            conn = getConnection();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, doctor.getDoctorId());
+                ps.setString(2, doctor.getSpecialization());
+                ps.setInt(3, doctor.getExperienceYears());
+                ps.setString(4, doctor.getPhone());
+                ps.setDouble(5, doctor.getConsultationFee());
+                ps.executeUpdate();
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to insert doctor", e);
+            throw new DataAccessException("Failed to insert doctor", e);
+        } finally {
+            if (shouldClose && conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+            }
         }
     }
 
     @Override
     public void update(Doctor doctor) {
         String sql = "UPDATE doctors SET specialization=?, experience_years=?, phone=?, consultation_fee=? WHERE doctor_id=?";
-        try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, doctor.getSpecialization());
-            ps.setInt(2, doctor.getExperienceYears());
-            ps.setString(3, doctor.getPhone());
-            ps.setDouble(4, doctor.getConsultationFee());
-            ps.setInt(5, doctor.getDoctorId());
-            ps.executeUpdate();
+        Connection conn = null;
+        boolean shouldClose = !isConnectionProvided();
+        try {
+            conn = getConnection();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, doctor.getSpecialization());
+                ps.setInt(2, doctor.getExperienceYears());
+                ps.setString(3, doctor.getPhone());
+                ps.setDouble(4, doctor.getConsultationFee());
+                ps.setInt(5, doctor.getDoctorId());
+                ps.executeUpdate();
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to update doctor", e);
+            throw new DataAccessException("Failed to update doctor", e);
+        } finally {
+            if (shouldClose && conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+            }
         }
     }
 
     private List<Doctor> executeQuery(String sql) {
         List<Doctor> doctors = new ArrayList<>();
-        try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                doctors.add(mapRow(rs));
+        Connection conn = null;
+        boolean shouldClose = !isConnectionProvided();
+        try {
+            conn = getConnection();
+            try (PreparedStatement ps = conn.prepareStatement(sql);
+                 ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    doctors.add(mapRow(rs));
+                }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to fetch doctors", e);
+            throw new DataAccessException("Failed to fetch doctors", e);
+        } finally {
+            if (shouldClose && conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+            }
         }
         return doctors;
     }

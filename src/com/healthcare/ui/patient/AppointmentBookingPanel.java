@@ -129,17 +129,24 @@ public class AppointmentBookingPanel extends JPanel {
             return;
         }
         String reason = JOptionPane.showInputDialog(this, "Reason for visit:");
+        if (reason == null || reason.trim().isEmpty()) {
+            UiUtil.showInfo("Reason is required for booking an appointment.");
+            return;
+        }
         try {
             Appointment appointment = patientService.bookAppointment(
                     patientUser.getUserId(),
                     selectedDoctor.getDoctorId(),
                     date,
                     selectedSlot.trim(),
-                    reason
+                    reason.trim()
             );
-            UiUtil.showInfo("Appointment booked with ID " + appointment.getAppointmentId());
+            UiUtil.showInfo("Appointment booked successfully with ID " + appointment.getAppointmentId());
+            // Clear form
+            dateField.setText("");
+            slotsModel.clear();
         } catch (Exception ex) {
-            UiUtil.showError("Unable to book appointment.", ex);
+            UiUtil.showError("Unable to book appointment: " + ex.getMessage(), ex);
         }
     }
 }

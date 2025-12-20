@@ -1,6 +1,8 @@
 package com.healthcare.dao;
 
 import com.healthcare.model.Appointment;
+import com.healthcare.util.DataSourceProvider;
+import com.healthcare.dao.DataAccessException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,19 +20,46 @@ import java.util.Optional;
 public class AppointmentDaoImpl implements AppointmentDao {
 
     private static final String BASE_SELECT = "SELECT appointment_id, patient_id, doctor_id, appointment_date, time_slot, status, reason, notes, created_at FROM appointments";
+    private Connection connection;
+
+    @Override
+    public void setConnection(Connection connection) {
+        this.connection = connection;
+    }
+
+    private Connection getConnection() throws SQLException {
+        return connection != null ? connection : DataSourceProvider.getConnection();
+    }
+
+    private boolean isConnectionProvided() {
+        return connection != null;
+    }
 
     @Override
     public Optional<Appointment> findById(int appointmentId) {
         String sql = BASE_SELECT + " WHERE appointment_id=?";
-        try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, appointmentId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return Optional.of(mapRow(rs));
+        Connection conn = null;
+        boolean shouldClose = !isConnectionProvided();
+        try {
+            conn = getConnection();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, appointmentId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return Optional.of(mapRow(rs));
+                    }
+                }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to load appointment", e);
+            throw new DataAccessException("Failed to load appointment", e);
+        } finally {
+            if (shouldClose && conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+            }
         }
         return Optional.empty();
     }
@@ -50,17 +79,30 @@ public class AppointmentDaoImpl implements AppointmentDao {
     public List<Appointment> findByDoctorAndRange(int doctorId, LocalDate start, LocalDate end) {
         String sql = BASE_SELECT + " WHERE doctor_id=? AND appointment_date BETWEEN ? AND ? ORDER BY appointment_date";
         List<Appointment> list = new ArrayList<>();
-        try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, doctorId);
-            ps.setObject(2, start);
-            ps.setObject(3, end);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                list.add(mapRow(rs));
+        Connection conn = null;
+        boolean shouldClose = !isConnectionProvided();
+        try {
+            conn = getConnection();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, doctorId);
+                ps.setObject(2, start);
+                ps.setObject(3, end);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        list.add(mapRow(rs));
+                    }
+                }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to load appointment range", e);
+            throw new DataAccessException("Failed to load appointment range", e);
+        } finally {
+            if (shouldClose && conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+            }
         }
         return list;
     }
@@ -74,78 +116,140 @@ public class AppointmentDaoImpl implements AppointmentDao {
     @Override
     public int save(Appointment appointment) {
         String sql = "INSERT INTO appointments (patient_id, doctor_id, appointment_date, time_slot, status, reason, notes) VALUES (?,?,?,?,?,?,?)";
-        try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, appointment.getPatientId());
-            ps.setInt(2, appointment.getDoctorId());
-            ps.setObject(3, appointment.getAppointmentDate());
-            ps.setString(4, appointment.getTimeSlot());
-            ps.setString(5, appointment.getStatus());
-            ps.setString(6, appointment.getReason());
-            ps.setString(7, appointment.getNotes());
-            ps.executeUpdate();
-            ResultSet keys = ps.getGeneratedKeys();
-            if (keys.next()) {
-                return keys.getInt(1);
+        Connection conn = null;
+        boolean shouldClose = !isConnectionProvided();
+        try {
+            conn = getConnection();
+            try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setInt(1, appointment.getPatientId());
+                ps.setInt(2, appointment.getDoctorId());
+                ps.setObject(3, appointment.getAppointmentDate());
+                ps.setString(4, appointment.getTimeSlot());
+                ps.setString(5, appointment.getStatus());
+                ps.setString(6, appointment.getReason());
+                ps.setString(7, appointment.getNotes());
+                ps.executeUpdate();
+                try (ResultSet keys = ps.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        return keys.getInt(1);
+                    }
+                }
+                throw new SQLException("Unable to get generated id for appointment");
             }
-            throw new SQLException("Unable to get generated id for appointment");
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to create appointment", e);
+            throw new DataAccessException("Failed to create appointment", e);
+        } finally {
+            if (shouldClose && conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+            }
         }
     }
 
     @Override
     public void updateStatus(int appointmentId, String status) {
         String sql = "UPDATE appointments SET status=? WHERE appointment_id=?";
-        try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, status);
-            ps.setInt(2, appointmentId);
-            ps.executeUpdate();
+        Connection conn = null;
+        boolean shouldClose = !isConnectionProvided();
+        try {
+            conn = getConnection();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, status);
+                ps.setInt(2, appointmentId);
+                ps.executeUpdate();
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to update appointment status", e);
+            throw new DataAccessException("Failed to update appointment status", e);
+        } finally {
+            if (shouldClose && conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+            }
         }
     }
 
     @Override
     public void reschedule(int appointmentId, LocalDate newDate, String newSlot) {
         String sql = "UPDATE appointments SET appointment_date=?, time_slot=?, status='CONFIRMED' WHERE appointment_id=?";
-        try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setObject(1, newDate);
-            ps.setString(2, newSlot);
-            ps.setInt(3, appointmentId);
-            ps.executeUpdate();
+        Connection conn = null;
+        boolean shouldClose = !isConnectionProvided();
+        try {
+            conn = getConnection();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setObject(1, newDate);
+                ps.setString(2, newSlot);
+                ps.setInt(3, appointmentId);
+                ps.executeUpdate();
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to reschedule appointment", e);
+            throw new DataAccessException("Failed to reschedule appointment", e);
+        } finally {
+            if (shouldClose && conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+            }
         }
     }
 
     private List<Appointment> executeQuery(String sql) {
         List<Appointment> list = new ArrayList<>();
-        try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(mapRow(rs));
+        Connection conn = null;
+        boolean shouldClose = !isConnectionProvided();
+        try {
+            conn = getConnection();
+            try (PreparedStatement ps = conn.prepareStatement(sql);
+                 ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to execute appointment query", e);
+            throw new DataAccessException("Failed to execute appointment query", e);
+        } finally {
+            if (shouldClose && conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+            }
         }
         return list;
     }
 
     private List<Appointment> executeQuery(String sql, int id) {
         List<Appointment> list = new ArrayList<>();
-        try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                list.add(mapRow(rs));
+        Connection conn = null;
+        boolean shouldClose = !isConnectionProvided();
+        try {
+            conn = getConnection();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, id);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        list.add(mapRow(rs));
+                    }
+                }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to execute appointment query", e);
+            throw new DataAccessException("Failed to execute appointment query", e);
+        } finally {
+            if (shouldClose && conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+            }
         }
         return list;
     }
